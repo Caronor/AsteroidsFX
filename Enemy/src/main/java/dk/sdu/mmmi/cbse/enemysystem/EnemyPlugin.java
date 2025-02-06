@@ -13,6 +13,7 @@ public class EnemyPlugin implements IGamePluginService {
 
     @Override
     public void start(GameData gameData, World world) {
+        System.out.println("EnemyPlugin: Adding enemy...");
         enemy = createEnemyShip(gameData);
         world.addEntity(enemy);
     }
@@ -20,17 +21,15 @@ public class EnemyPlugin implements IGamePluginService {
     @Override
     public void stop(GameData gameData, World world) {
         // Remove entities
-        for (Entity enemy : world.getEntities(Enemy.class)) {
-            world.removeEntity(enemy);
-        }
+        world.removeEntity(enemy);
     }
 
     private Entity createEnemyShip(GameData gameData) {
         Entity enemyShip = new Enemy();
         enemyShip.setPolygonCoordinates(-5,-5,10,0,-5,5);
 
-        enemyShip.setX(gameData.getDisplayHeight()/2.0);
-        enemyShip.setY(gameData.getDisplayWidth()/2.0);
+        enemyShip.setX(gameData.getDisplayHeight()/2);
+        enemyShip.setY(gameData.getDisplayWidth()/2);
 
         enemyShip.setRadius(8);
         return enemyShip;
