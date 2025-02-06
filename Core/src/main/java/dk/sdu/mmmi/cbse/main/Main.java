@@ -7,6 +7,8 @@ import dk.sdu.mmmi.cbse.common.data.World;
 import dk.sdu.mmmi.cbse.common.services.IEntityProcessingService;
 import dk.sdu.mmmi.cbse.common.services.IGamePluginService;
 import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -39,6 +41,12 @@ public class Main extends Application {
         gameWindow.getChildren().add(text);
 
         Scene scene = new Scene(gameWindow);
+
+        System.out.println("Checking loaded plugins...");
+        for (IGamePluginService plugin : getPluginServices()) {
+            System.out.println("Loaded Plugin: " + plugin.getClass().getName());
+        }
+
         scene.setOnKeyPressed(event -> {
             if (event.getCode().equals(KeyCode.LEFT)) {
                 gameData.getKeys().setKey(GameKeys.LEFT, true);
@@ -73,11 +81,18 @@ public class Main extends Application {
         for (IGamePluginService iGamePlugin : getPluginServices()) {
             iGamePlugin.start(gameData, world);
         }
+
+        System.out.println("World Entities:");
+        for (Entity e : world.getEntities()) {
+            System.out.println("Entity: " + e.getClass().getSimpleName() + " at (" + e.getX() + ", " + e.getY() + ")");
+        }
+
         for (Entity entity : world.getEntities()) {
             Polygon polygon = new Polygon(entity.getPolygonCoordinates());
             polygons.put(entity, polygon);
             gameWindow.getChildren().add(polygon);
         }
+
         render();
         window.setScene(scene);
         window.setTitle("ASTEROIDS");
@@ -102,31 +117,46 @@ public class Main extends Application {
         }
         for (IPostEntityProcessingService postEntityProcessorService : getPostEntityProcessingServices()) {
             postEntityProcessorService.process(gameData, world);
-        }       
+        }
+
+        // Debugging: Track entity removals
+        for (Entity entity : world.getEntities()) {
+            if (!polygons.containsKey(entity)) {
+                System.out.println("❗ Entity " + entity.getClass().getSimpleName() + " was removed from rendering but still in the world.");
+            }
+        }
     }
 
-    private void draw() {        
+    private void draw() {
         for (Entity polygonEntity : polygons.keySet()) {
-            if(!world.getEntities().contains(polygonEntity)){   
+            if(!world.getEntities().contains(polygonEntity)){
+                System.out.println("Entity " + polygonEntity.getClass().getSimpleName() + " was removed!");
                 Polygon removedPolygon = polygons.get(polygonEntity);               
                 polygons.remove(polygonEntity);                      
                 gameWindow.getChildren().remove(removedPolygon);
             }
         }
                 
-        for (Entity entity : world.getEntities()) {                      
+        for (Entity entity : world.getEntities()) {
             Polygon polygon = polygons.get(entity);
+
             if (polygon == null) {
+                System.out.println("Creating Polygon for " + entity.getClass().getSimpleName());
+                System.out.println("Polygon Coordinates: " + Arrays.toString(entity.getPolygonCoordinates()));
+
                 polygon = new Polygon(entity.getPolygonCoordinates());
                 polygons.put(entity, polygon);
                 gameWindow.getChildren().add(polygon);
+            } else {
+                System.out.println("Already rendering: " + entity.getClass().getSimpleName());
             }
+
+            System.out.println(entity.getClass().getSimpleName() + " Position: (" + entity.getX() + ", " + entity.getY() + ")");
 
             polygon.setTranslateX(entity.getX());
             polygon.setTranslateY(entity.getY());
             polygon.setRotate(entity.getRotation());
         }
-
     }
 
     private Collection<? extends IGamePluginService> getPluginServices() {

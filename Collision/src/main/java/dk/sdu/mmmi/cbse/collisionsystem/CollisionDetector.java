@@ -4,6 +4,8 @@ import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
 import dk.sdu.mmmi.cbse.common.data.Entity;
 import dk.sdu.mmmi.cbse.common.data.GameData;
 import dk.sdu.mmmi.cbse.common.data.World;
+import dk.sdu.mmmi.cbse.playersystem.Player;
+import dk.sdu.mmmi.cbse.enemysystem.Enemy;
 
 public class CollisionDetector implements IPostEntityProcessingService {
 
@@ -21,14 +23,26 @@ public class CollisionDetector implements IPostEntityProcessingService {
                     continue;                    
                 }
 
+                // Ignore collisions between Player and Enemy at game start
+                if ((entity1 instanceof Player && entity2 instanceof Enemy) ||
+                        (entity2 instanceof Player && entity1 instanceof Enemy)) {
+                    System.out.println("⏳ Ignoring initial Player-Enemy collision to prevent instant removal.");
+                    continue;
+                }
+
                 // CollisionDetection
                 if (this.collides(entity1, entity2)) {
+                    System.out.println("💥 Collision detected between: "
+                            + entity1.getClass().getSimpleName() + " and "
+                            + entity2.getClass().getSimpleName() + " at positions ("
+                            + entity1.getX() + ", " + entity1.getY() + ") and ("
+                            + entity2.getX() + ", " + entity2.getY() + ")");
+
                     world.removeEntity(entity1);
                     world.removeEntity(entity2);
                 }
             }
         }
-
     }
 
     public Boolean collides(Entity entity1, Entity entity2) {
@@ -37,5 +51,4 @@ public class CollisionDetector implements IPostEntityProcessingService {
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
         return distance < (entity1.getRadius() + entity2.getRadius());
     }
-
 }
