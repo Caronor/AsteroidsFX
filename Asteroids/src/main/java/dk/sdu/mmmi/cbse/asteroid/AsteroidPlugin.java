@@ -7,13 +7,11 @@ import dk.sdu.mmmi.cbse.common.data.World;
 import dk.sdu.mmmi.cbse.common.services.IGamePluginService;
 import java.util.Random;
 
-/**
- *
- * @author corfixen
- */
-public class AsteroidPlugin implements IGamePluginService {
+// Class spawns asteroids in the world
 
+public class AsteroidPlugin implements IGamePluginService {
     @Override
+    //Creates a new asteroid when the game starts
     public void start(GameData gameData, World world) {
         Entity asteroid = createAsteroid(gameData);
         world.addEntity(asteroid);
@@ -21,7 +19,7 @@ public class AsteroidPlugin implements IGamePluginService {
 
     @Override
     public void stop(GameData gameData, World world) {
-        // Remove entities
+        //Removes all asteroids from the game when stopping
         for (Entity asteroid : world.getEntities(Asteroid.class)) {
             world.removeEntity(asteroid);
         }
